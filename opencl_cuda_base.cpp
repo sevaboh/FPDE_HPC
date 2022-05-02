@@ -8,11 +8,13 @@
 #include <string>
 #include <map>
 #include "opencl_cuda_class.h"
-int opencl_debug=1;
+int opencl_debug=0;
 #define SWARN(s) {printf("%s\n",s);}
 #define SWARN_INT(s,i) {printf("%s %d\n",s,i);}
 #define SERROR(s) {printf("%s\n",s);exit(0);}
 #define SERROR_INT(s,i) {printf("%s %d\n",s,i);exit(0);}
+#define SWARN_HEX(s,i) {printf("%s %x\n",s,i);}
+#define SERROR_HEX(s,i) {printf("%s %x\n",s,i);exit(0);}
 using namespace std;
 
 #ifndef CUDA
@@ -529,7 +531,7 @@ OpenCL_prg::OpenCL_prg(cl_context *ct,cl_device_id device_id, const char *source
 	if((err=cuLinkDestroy(linker))!=CUDA_SUCCESS) SERROR_INT("CUDA - error destroying linker",err);
 	if (opencl_debug) 
 	{
-	    SWARN(ptx);
+	    //SWARN(ptx);
 	    SWARN_INT("CUDA - program compiled successfully - ptx size",(int)ptxSize);
 	    SWARN_HEX("CUDA - program compiled successfully - module",(long long int)((void *)ct[0]));
 	}
@@ -711,7 +713,7 @@ cl_event OpenCL_commandqueue::ExecuteKernel(OpenCL_kernel *krnl,int ndims,size_t
 		if ((e1=cudaDeviceSynchronize())!=CUDA_SUCCESS) SERROR_INT("CUDA - error executing kernel",(int)e1);
                 clock_gettime(CLOCK_REALTIME, &t2); 
 		if (opencl_debug)		
-			SWARN_INT("CUDA - kernel completed - time (naneseconds) - ",(int)(t2.tv_nsec-t1.tv_nsec));
+			SWARN_INT("CUDA - kernel completed - time (nanoseconds) - ",(int)(t2.tv_nsec-t1.tv_nsec));
 		return e;
 	}
 void OpenCL_commandqueue::ReleaseEvent(cl_event e)
@@ -771,6 +773,7 @@ OpenCL_program::OpenCL_program(int gpu)
 		kernels=new vector<OpenCL_kernel*>[1];
 		queues=new vector<OpenCL_commandqueue*>[1];
 		progs=new vector<OpenCL_prg *>[1];
+		device_ids=new cl_device_id[1];
    }
 int OpenCL_program::get_ndevices()
 {
